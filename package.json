@@ -1,0 +1,34 @@
+{
+  "name": "se_project_express",
+  "version": "0.1.0",
+  "description": "Express",
+  "homepage": "https://github.com/kmazza-hub/se_project_express#readme",
+  "bugs": {
+    "url": "https://github.com/kmazza-hub/se_project_express/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kmazza-hub/se_project_express.git"
+  },
+  "license": "ISC",
+  "author": "Keith Mazza",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "npx eslint .",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.12.1",
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-import": "^2.31.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^2.8.8"
+  }
+}
