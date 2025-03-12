@@ -9,10 +9,27 @@ node_modules
 # Optional npm cache directory
 .npm
 
-# System files and IDE settings folders
+# System files and IDE settings
 .DS_Store
 .idea
-.vscode
+.vscode/
+Thumbs.db
+ehthumbs.db
 
-# post-man
+# Postman files
 postman-win.zip
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+dist/
+build/
+.cache/
+
+# User uploads
+uploads/
