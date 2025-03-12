@@ -5,6 +5,7 @@ const {
   NOT_FOUND_CODE,
 } = require("../utils/errors");
 
+// Fetch all users
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
@@ -16,6 +17,7 @@ const getUsers = (req, res) => {
     });
 };
 
+// Create a new user
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
   console.log("Creating user:", name, avatar);
@@ -35,6 +37,7 @@ const createUser = (req, res) => {
     });
 };
 
+// Fetch a specific user by ID
 const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
@@ -56,4 +59,10 @@ const getUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser };
+// Placeholder login function to avoid Express route errors
+const login = (req, res) => {
+  res.status(200).send({ message: "Login functionality not implemented yet" });
+};
+
+// Export all functions
+module.exports = { getUsers, createUser, getUser, login };

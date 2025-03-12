@@ -3,18 +3,11 @@ const {
   INTERNAL_SERVER_CODE,
   BAD_REQUEST_CODE,
   NOT_FOUND_CODE,
-  UNAUTHORIZED_CODE,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
   console.log("User:", req.user);
   console.log("Body:", req.body);
-
-  if (!req.user) {
-    return res
-      .status(UNAUTHORIZED_CODE || 401)
-      .json({ message: "Unauthorized: User not found" });
-  }
 
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
@@ -65,10 +58,6 @@ const deleteItem = (req, res) => {
 };
 
 const likeItem = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized: User not found" });
-  }
-
   clothingItemSchema
     .findByIdAndUpdate(
       req.params.itemId,
@@ -90,10 +79,6 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized: User not found" });
-  }
-
   clothingItemSchema
     .findByIdAndUpdate(
       req.params.itemId,
@@ -121,4 +106,3 @@ module.exports = {
   likeItem,
   dislikeItem,
 };
-
