@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
-const routes = require("./routes");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -9,7 +8,7 @@ const { PORT = 3001 } = process.env;
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
   .then(() => {
-    console.log("Connected to Db");
+    console.log("Connected to DB");
   })
   .catch((e) => console.error(e));
 
@@ -22,10 +21,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(routes);
-
 app.use("/", mainRouter);
 
 app.listen(PORT, () => {
-  console.log(`listening on port 3001`);
+  console.log(`Listening on port ${PORT}`);
 });
