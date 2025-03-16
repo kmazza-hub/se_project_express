@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -10,14 +11,26 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
+    default: "https://default-avatar.com",
+  },
+  email: {
+    type: String,
     required: true,
-    validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
-      message: "You must enter a valid URL",
-    },
+    unique: true,
+    validate: [validator.isEmail, "Invalid email format"],
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false, // Prevent the password from being returned in queries
   },
 });
 
-module.exports = mongoose.model("user", userSchema);
+// Hash the password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+module.exports = mongoose.model("User", userSchema);

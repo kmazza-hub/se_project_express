@@ -1,23 +1,17 @@
-const clothingItemSchema = require("../models/clothingItem");
+const ClothingItem = require("../models/clothingItem");
 const {
   INTERNAL_SERVER_CODE,
   BAD_REQUEST_CODE,
   NOT_FOUND_CODE,
+  FORBIDDEN_CODE,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
-  console.log("User:", req.user);
-  console.log("Body:", req.body);
-
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
 
-  clothingItemSchema
-    .create({ name, weather, imageUrl, owner })
-    .then((item) => {
-      console.log("Created Item:", item);
-      res.status(201).json({ data: item });
-    })
+  ClothingItem.create({ name, weather, imageUrl, owner })
+    .then((item) => res.status(201).json({ data: item }))
     .catch((err) => {
       console.error("Error creating item:", err);
       if (err.name === "ValidationError") {
@@ -28,8 +22,7 @@ const createItem = (req, res) => {
 };
 
 const getItems = (req, res) => {
-  clothingItemSchema
-    .find({})
+  ClothingItem.find({})
     .then((items) => res.status(200).json(items))
     .catch((err) => {
       console.error("Error fetching items:", err);
@@ -40,11 +33,16 @@ const getItems = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  console.log("Deleting Item ID:", itemId);
-  clothingItemSchema
-    .findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
-    .then((item) => res.status(200).json({ data: item }))
+    .then((item) => {
+      if (String(item.owner) !== req.user._id) {
+        return res.status(FORBIDDEN_CODE).json({ message: "You are not authorized to delete this item" });
+      }
+
+      return ClothingItem.findByIdAndDelete(itemId)
+        .then(() => res.status(200).json({ message: "Item deleted successfully" }));
+    })
     .catch((err) => {
       console.error("Error deleting item:", err);
       if (err.name === "DocumentNotFoundError") {
@@ -58,12 +56,11 @@ const deleteItem = (req, res) => {
 };
 
 const likeItem = (req, res) => {
-  clothingItemSchema
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true }
-    )
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
     .orFail()
     .then((item) => res.status(200).json({ data: item }))
     .catch((err) => {
@@ -79,12 +76,11 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
-  clothingItemSchema
-    .findByIdAndUpdate(
-      req.params.itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true }
-    )
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
     .orFail()
     .then((item) => res.status(200).json({ data: item }))
     .catch((err) => {
