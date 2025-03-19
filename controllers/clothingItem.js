@@ -13,7 +13,6 @@ const createItem = (req, res) => {
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => res.status(201).json({ data: item }))
     .catch((err) => {
-      console.error("Error creating item:", err);
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST_CODE).json({ message: "Invalid input data" });
       }
@@ -24,8 +23,7 @@ const createItem = (req, res) => {
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).json(items))
-    .catch((err) => {
-      console.error("Error fetching items:", err);
+    .catch(() => {
       res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
     });
 };
@@ -39,12 +37,11 @@ const deleteItem = (req, res) => {
       if (String(item.owner) !== req.user._id) {
         return res.status(FORBIDDEN_CODE).json({ message: "You are not authorized to delete this item" });
       }
-
-      return ClothingItem.findByIdAndDelete(itemId)
-        .then(() => res.status(200).json({ message: "Item deleted successfully" }));
+      return ClothingItem.findByIdAndDelete(itemId).then(() =>
+        res.status(200).json({ message: "Item deleted successfully" })
+      );
     })
     .catch((err) => {
-      console.error("Error deleting item:", err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
       }
@@ -55,19 +52,22 @@ const deleteItem = (req, res) => {
     });
 };
 
+
 const likeItem = (req, res) => {
+  const { itemId } = req.params;
+
   ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
-    .then((item) => res.status(200).json({ data: item }))
-    .catch((err) => {
-      console.error("Error liking item:", err);
-      if (err.name === "DocumentNotFoundError") {
+    .then((item) => {
+      if (!item) {
         return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
       }
+      res.status(200).json(item);
+    })
+    .catch((err) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST_CODE).json({ message: "Invalid item ID format" });
       }
@@ -76,18 +76,20 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+
   ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
-    .then((item) => res.status(200).json({ data: item }))
-    .catch((err) => {
-      console.error("Error disliking item:", err);
-      if (err.name === "DocumentNotFoundError") {
+    .then((item) => {
+      if (!item) {
         return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
       }
+      res.status(200).json(item);
+    })
+    .catch((err) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST_CODE).json({ message: "Invalid item ID format" });
       }
@@ -95,10 +97,4 @@ const dislikeItem = (req, res) => {
     });
 };
 
-module.exports = {
-  createItem,
-  getItems,
-  deleteItem,
-  likeItem,
-  dislikeItem,
-};
+module.exports = { createItem, getItems, deleteItem, likeItem, dislikeItem };
