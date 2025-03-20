@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { errors } = require("celebrate");
-const auth = require("./middlewares/auth");
+const auth = require("./middlewares/auth.js");
 const { createUser, login } = require("./controllers/users.js");
 const clothingRoutes = require("./routes/clothingItem");
 const usersRoutes = require("./routes/users");

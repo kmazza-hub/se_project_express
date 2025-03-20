@@ -12,5 +12,3 @@ router.use("/users", usersRouter);
 router.use("/items", clothingItemsRouter);
 
 module.exports = router;
-
-

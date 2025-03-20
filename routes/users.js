@@ -1,6 +1,6 @@
 const express = require("express");
 const auth = require("../middlewares/auth");
-const { getCurrentUser, updateCurrentUser } = require("../controllers/users"); // ✅ Ensure correct import
+const { getCurrentUser, updateCurrentUser } = require("../controllers/users");
 
 const router = express.Router();
 
