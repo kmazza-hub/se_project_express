@@ -5,8 +5,6 @@ const { UNAUTHORIZED_CODE } = require("../utils/errors");
 const auth = (req, res, next) => {
   const { authorization } = req.headers;
 
-  console.log("🛠 Incoming Headers:", req.headers);
-
   if (!authorization || !authorization.startsWith("Bearer ")) {
     return res.status(UNAUTHORIZED_CODE).send({ message: "Authorization required" });
   }
@@ -18,7 +16,6 @@ const auth = (req, res, next) => {
     req.user = { _id: payload._id };
     return next();
   } catch (err) {
-    console.error("🔴 JWT Error:", err.message);
     if (err.name === "JsonWebTokenError") {
       return res.status(UNAUTHORIZED_CODE).send({ message: "Invalid token" });
     }

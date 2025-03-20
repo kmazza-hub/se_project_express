@@ -1,100 +1,34 @@
 const ClothingItem = require("../models/clothingItem");
-const {
-  INTERNAL_SERVER_CODE,
-  BAD_REQUEST_CODE,
-  NOT_FOUND_CODE,
-  FORBIDDEN_CODE,
-} = require("../utils/errors");
+const { BAD_REQUEST_CODE, INTERNAL_SERVER_CODE, NOT_FOUND_CODE } = require("../utils/errors");
 
-const createItem = (req, res) => {
+const getClothingItems = (req, res) => {
+  ClothingItem.find({})
+    .then((items) => res.send(items))
+    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
+};
+
+const createClothingItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  const owner = req.user._id;
 
-  ClothingItem.create({ name, weather, imageUrl, owner })
-    .then((item) => res.status(201).json({ data: item }))
+  ClothingItem.create({ name, weather, imageUrl })
+    .then((item) => res.status(201).send(item))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST_CODE).json({ message: "Invalid input data" });
+        return res.status(BAD_REQUEST_CODE).send({ message: "Invalid input data" });
       }
-      return res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
+      return res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" });
     });
 };
 
-const getItems = (req, res) => {
-  ClothingItem.find({})
-    .then((items) => res.status(200).json(items))
-    .catch(() => {
-      res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
-    });
-};
-
-const deleteItem = (req, res) => {
-  const { itemId } = req.params;
-
-  ClothingItem.findById(itemId)
-    .orFail()
-    .then((item) => {
-      if (String(item.owner) !== req.user._id) {
-        return res.status(FORBIDDEN_CODE).json({ message: "You are not authorized to delete this item" });
-      }
-      return ClothingItem.findByIdAndDelete(itemId).then(() =>
-        res.status(200).json({ message: "Item deleted successfully" })
-      );
-    })
-    .catch((err) => {
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST_CODE).json({ message: "Invalid item ID format" });
-      }
-      return res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
-    });
-};
-
-
-const likeItem = (req, res) => {
-  const { itemId } = req.params;
-
-  ClothingItem.findByIdAndUpdate(
-    itemId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true }
-  )
+const deleteClothingItem = (req, res) => {
+  ClothingItem.findByIdAndRemove(req.params.id)
     .then((item) => {
       if (!item) {
-        return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
+        return res.status(NOT_FOUND_CODE).send({ message: "Item not found" });
       }
-      res.status(200).json(item);
+      return res.send({ message: "Item deleted successfully" });
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST_CODE).json({ message: "Invalid item ID format" });
-      }
-      return res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
-    });
+    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
 };
 
-const dislikeItem = (req, res) => {
-  const { itemId } = req.params;
-
-  ClothingItem.findByIdAndUpdate(
-    itemId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND_CODE).json({ message: "Item not found" });
-      }
-      res.status(200).json(item);
-    })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST_CODE).json({ message: "Invalid item ID format" });
-      }
-      return res.status(INTERNAL_SERVER_CODE).json({ message: "Internal server error" });
-    });
-};
-
-module.exports = { createItem, getItems, deleteItem, likeItem, dislikeItem };
+module.exports = { getClothingItems, createClothingItem, deleteClothingItem };

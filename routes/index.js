@@ -7,7 +7,6 @@ const router = express.Router();
 
 router.post("/signup", createUser);
 router.post("/signin", login);
-
 router.use("/users", usersRouter);
 router.use("/items", clothingItemsRouter);
 
