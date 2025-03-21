@@ -1,9 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { errors } = require("celebrate");
-const { createUser, login } = require("./controllers/users");
 const routes = require("./routes/index");
 const { PORT, MONGO_URL } = require("./utils/config");
+const { NOT_FOUND_CODE } = require("./utils/errors");
 
 const app = express();
 
@@ -14,16 +13,11 @@ mongoose.connect(MONGO_URL, {
 
 app.use(express.json());
 
-app.post("/signup", createUser);
-app.post("/signin", login);
-
 app.use("/", routes);
 
 app.use((req, res) => {
-  res.status(404).send({ message: "Resource not found" });
+  res.status(NOT_FOUND_CODE).send({ message: "Resource not found" });
 });
-
-app.use(errors());
 
 app.use((err, req, res) => {
   const { statusCode = 500, message = "Internal Server Error" } = err;
