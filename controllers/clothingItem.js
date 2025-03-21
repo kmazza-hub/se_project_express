@@ -1,10 +1,17 @@
 const ClothingItem = require("../models/clothingItem");
-const { BAD_REQUEST_CODE, INTERNAL_SERVER_CODE, NOT_FOUND_CODE, FORBIDDEN_CODE } = require("../utils/errors");
+const {
+  BAD_REQUEST_CODE,
+  INTERNAL_SERVER_CODE,
+  NOT_FOUND_CODE,
+  FORBIDDEN_CODE,
+} = require("../utils/errors");
 
 const getClothingItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.send(items))
-    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
+    .catch(() =>
+      res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" })
+    );
 };
 
 const createClothingItem = (req, res) => {
@@ -15,9 +22,13 @@ const createClothingItem = (req, res) => {
     .then((item) => res.status(201).send(item))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST_CODE).send({ message: "Invalid input data" });
+        return res
+          .status(BAD_REQUEST_CODE)
+          .send({ message: "Invalid input data" });
       }
-      return res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" });
+      return res
+        .status(INTERNAL_SERVER_CODE)
+        .send({ message: "Internal server error" });
     });
 };
 
@@ -28,11 +39,24 @@ const deleteClothingItem = (req, res) => {
         return res.status(NOT_FOUND_CODE).send({ message: "Item not found" });
       }
       if (item.owner.toString() !== req.user._id) {
-        return res.status(FORBIDDEN_CODE).send({ message: "You are not authorized to delete this item" });
+        return res
+          .status(FORBIDDEN_CODE)
+          .send({ message: "You are not authorized to delete this item" });
       }
-      return item.deleteOne().then(() => res.send({ message: "Item deleted successfully" }));
+      return item.deleteOne().then(() =>
+        res.send({ message: "Item deleted successfully" })
+      );
     })
-    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST_CODE)
+          .send({ message: "Invalid item ID format" });
+      }
+      return res
+        .status(INTERNAL_SERVER_CODE)
+        .send({ message: "Internal server error" });
+    });
 };
 
 const addLike = (req, res) => {
@@ -47,9 +71,17 @@ const addLike = (req, res) => {
       }
       return res.send(item);
     })
-    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST_CODE)
+          .send({ message: "Invalid item ID format" });
+      }
+      return res
+        .status(INTERNAL_SERVER_CODE)
+        .send({ message: "Internal server error" });
+    });
 };
-
 
 const removeLike = (req, res) => {
   ClothingItem.findByIdAndUpdate(
@@ -63,7 +95,22 @@ const removeLike = (req, res) => {
       }
       return res.send(item);
     })
-    .catch(() => res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" }));
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST_CODE)
+          .send({ message: "Invalid item ID format" });
+      }
+      return res
+        .status(INTERNAL_SERVER_CODE)
+        .send({ message: "Internal server error" });
+    });
 };
 
-module.exports = { getClothingItems, createClothingItem, deleteClothingItem, addLike, removeLike };
+module.exports = {
+  getClothingItems,
+  createClothingItem,
+  deleteClothingItem,
+  addLike,
+  removeLike,
+};
