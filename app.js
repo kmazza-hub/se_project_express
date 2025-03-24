@@ -1,31 +1,43 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const routes = require("./routes/index");
-const { PORT, MONGO_URL } = require("./utils/config");
-const { NOT_FOUND_CODE } = require("./utils/errors");
+const cors = require("cors");
+const { errors } = require("celebrate");
+require("dotenv").config();
+
+const usersRouter = require("./routes/users");
+const clothingItemsRouter = require("./routes/clothingItem");
+const authRouter = require("./routes/auth"); // ✅ Import auth routes
+const handleErrors = require("./middlewares/handleErrors");
+
+const { PORT = 3001, MONGO_URL = "mongodb://localhost:27017/wtwr" } = process.env;
 
 const app = express();
 
+// Connect to MongoDB
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
+// CORS Configuration
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
-app.use("/", routes);
+// Routes
+app.use("/", authRouter); // ✅ Add auth routes
+app.use("/users", usersRouter);
+app.use("/items", clothingItemsRouter);
 
-app.use((req, res) => {
-  res.status(NOT_FOUND_CODE).send({ message: "Resource not found" });
-});
+// Error Handling
+app.use(errors());
+app.use(handleErrors);
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message = "Internal Server Error" } = err;
-  res.status(statusCode).send({ message });
-
-  next();
-});
-
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });

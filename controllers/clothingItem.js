@@ -14,6 +14,14 @@ const getClothingItems = (req, res) => {
     );
 };
 
+const getUserClothingItems = (req, res) => {
+  ClothingItem.find({ owner: req.user._id })
+    .then((items) => res.send(items))
+    .catch(() =>
+      res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" })
+    );
+};
+
 const createClothingItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
@@ -39,78 +47,23 @@ const deleteClothingItem = (req, res) => {
         return res.status(NOT_FOUND_CODE).send({ message: "Item not found" });
       }
       if (item.owner.toString() !== req.user._id) {
-        return res
-          .status(FORBIDDEN_CODE)
-          .send({ message: "You are not authorized to delete this item" });
+        return res.status(FORBIDDEN_CODE).send({ message: "Forbidden" });
       }
-      return item.deleteOne().then(() =>
-        res.send({ message: "Item deleted successfully" })
-      );
+      return item
+        .deleteOne()
+        .then(() => res.send({ message: "Item deleted" }))
+        .catch(() =>
+          res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" })
+        );
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_CODE)
-          .send({ message: "Invalid item ID format" });
-      }
-      return res
-        .status(INTERNAL_SERVER_CODE)
-        .send({ message: "Internal server error" });
-    });
-};
-
-const addLike = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.id,
-    { $addToSet: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND_CODE).send({ message: "Item not found" });
-      }
-      return res.send(item);
-    })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_CODE)
-          .send({ message: "Invalid item ID format" });
-      }
-      return res
-        .status(INTERNAL_SERVER_CODE)
-        .send({ message: "Internal server error" });
-    });
-};
-
-const removeLike = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.id,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND_CODE).send({ message: "Item not found" });
-      }
-      return res.send(item);
-    })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST_CODE)
-          .send({ message: "Invalid item ID format" });
-      }
-      return res
-        .status(INTERNAL_SERVER_CODE)
-        .send({ message: "Internal server error" });
-    });
+    .catch(() =>
+      res.status(INTERNAL_SERVER_CODE).send({ message: "Internal server error" })
+    );
 };
 
 module.exports = {
   getClothingItems,
   createClothingItem,
+  getUserClothingItems,
   deleteClothingItem,
-  addLike,
-  removeLike,
 };
