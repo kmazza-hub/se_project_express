@@ -1,6 +1,6 @@
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
-const { login, register } = require("../controllers/auth"); // Import both controllers
+const { login, register } = require("../controllers/auth");
 
 const router = express.Router();
 
