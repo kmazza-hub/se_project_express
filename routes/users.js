@@ -1,6 +1,5 @@
 const express = require("express");
-const { login, register } = require("../controllers/auth");
-const auth = require("../middlewares/auth");
+const { login, createUser } = require("../controllers/auth");  // Changed register to createUser
 const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
@@ -11,7 +10,7 @@ const loginRateLimiter = rateLimit({
   message: "Too many login attempts, please try again later",
 });
 
-router.post("/signup", register);
-router.post("/login", loginRateLimiter, login);
+router.post("/signup", createUser);  // Use createUser for signup
+router.post("/login", loginRateLimiter, login);  // Use login for signin
 
 module.exports = router;

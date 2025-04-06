@@ -9,16 +9,14 @@ const {
   CONFLICT_CODE,
 } = require("../utils/errors");
 
+// Create a new user (register)
 const createUser = async (req, res, next) => {
   try {
     const { name, avatar, email, password } = req.body;
-
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       logger.warn(`Email already exists: ${email}`);
-      return res
-        .status(CONFLICT_CODE)
-        .json({ message: "Email already exists" });
+      return res.status(CONFLICT_CODE).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,26 +29,22 @@ const createUser = async (req, res, next) => {
     });
 
     logger.info(`User created: ${newUser._id}`);
-
     return res.status(201).json({ message: "User created", user: newUser });
   } catch (err) {
     if (err.code === 11000) {
       logger.error(`Database error: ${err.message}`);
-      return res
-        .status(CONFLICT_CODE)
-        .json({ message: "Email already exists" });
+      return res.status(CONFLICT_CODE).json({ message: "Email already exists" });
     }
     if (err.name === "ValidationError") {
       logger.error(`Validation error: ${err.message}`);
-      return res
-        .status(BAD_REQUEST_CODE)
-        .json({ message: "Invalid input data" });
+      return res.status(BAD_REQUEST_CODE).json({ message: "Invalid input data" });
     }
     logger.error(`Error in creating user: ${err.message}`);
     return next(err);
   }
 };
 
+// Login a user
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -59,17 +53,14 @@ const login = async (req, res, next) => {
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       logger.warn(`Failed login attempt for email: ${email}`);
-      return res
-        .status(UNAUTHORIZED_CODE)
-        .json({ message: "Incorrect email or password" });
+      return res.status(UNAUTHORIZED_CODE).json({ message: "Incorrect email or password" });
     }
 
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const accessToken = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
     const refreshToken = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "30d" });
 
     logger.info(`User logged in: ${user._id}`);
-
-    return res.json({ accessToken: token, refreshToken });
+    return res.json({ accessToken, refreshToken });
   } catch (err) {
     logger.error(`Error during login: ${err.message}`);
     return next(err);
