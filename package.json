@@ -16,6 +16,7 @@
   "type": "commonjs",
   "scripts": {
     "lint": "npx eslint .",
+    "seed": "node seed/seedUser.js",
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"No tests yet\" && exit 1"
