@@ -13,11 +13,10 @@ async function seed() {
 
     const email = "test@example.com";
 
-    // Check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log(`⚠️ User with email ${email} already exists. Skipping seeding.`);
-      return process.exit(0);
+      return true;
     }
 
     const passwordHash = await bcrypt.hash("testpassword", 10);
@@ -29,10 +28,12 @@ async function seed() {
     });
 
     console.log("✅ Seeded user:", user);
-    process.exit(0);
+    return true;
   } catch (err) {
     console.error("❌ Seeding error:", err);
-    process.exit(1);
+    return false;
+  } finally {
+    process.exit(0);
   }
 }
 

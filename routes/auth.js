@@ -1,10 +1,9 @@
 const express = require("express");
 const { celebrate, Joi } = require("celebrate");
-const { login, createUser } = require("../controllers/auth");  // Check if these are correct imports
+const { login, createUser } = require("../controllers/auth");
 
 const router = express.Router();
 
-// Sign in route
 router.post(
   "/signin",
   celebrate({
@@ -16,7 +15,6 @@ router.post(
   login
 );
 
-// Sign up route
 router.post(
   "/signup",
   celebrate({
@@ -26,7 +24,7 @@ router.post(
       password: Joi.string().required(),
     }),
   }),
-  createUser  // Ensure the function name is correct here as well
+  createUser
 );
 
 module.exports = router;

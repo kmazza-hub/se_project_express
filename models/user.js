@@ -1,6 +1,6 @@
+const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -11,38 +11,61 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: true,
-    default: "https://default-avatar.com",
+    required: [true, "The avatar field is required."],
     validate: {
-      validator: (url) => validator.isURL(url, { protocols: ["http", "https"], require_protocol: true }),
-      message: "Invalid URL format",
+      validator(value) {
+        return validator.isURL(value);
+      },
+      message: "You must enter a valid URL",
     },
   },
   email: {
     type: String,
-    required: true,
+    required: [true, "Email is required"],
+    validate: {
+      validator(value) {
+        return validator.isEmail(value);
+      },
+      message: "Invalid email",
+    },
     unique: true,
-    validate: [validator.isEmail, "Invalid email format"],
   },
   password: {
     type: String,
-    required: true,
-    select: false,
+    required: [true, "Password is required"],
+    select: false, // Make sure the password is not returned in queries unless explicitly selected
   },
 });
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
+// Hash password before saving user
+userSchema.pre('save', function(next) {
+  if (!this.isModified('password')) return next(); // Don't hash the password if it isn't modified
+
+  bcrypt.hash(this.password, 10, (err, hashedPassword) => {
+    if (err) return next(err);
+
+    this.password = hashedPassword; // Save the hashed password
     next();
-  } catch (error) {
-    next(error);
-  }
+  });
 });
 
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+// Static method to find user by credentials (login validation)
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email })
+    .select("+password") // Include the password field since it's excluded by default
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error("Incorrect email or password"));
+      }
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(new Error("Incorrect email or password"));
+        }
+
+        return user;
+      });
+    });
 };
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("user", userSchema);

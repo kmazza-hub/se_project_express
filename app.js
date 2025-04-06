@@ -1,41 +1,23 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const { errors } = require("celebrate");
-const logger = require("./utils/logger");
-require("dotenv").config();
-
-const usersRouter = require("./routes/users");
-const clothingItemsRouter = require("./routes/clothingItem");
-const authRouter = require("./routes/auth");
-const handleErrors = require("./middlewares/handleErrors");
-
-const { PORT = 3001, MONGO_URL = "mongodb://localhost:27017/wtwr" } = process.env;
+const mainRouter = require("./routes/index");
 
 const app = express();
+const { PORT = 3001 } = process.env;
 
-mongoose.connect(MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => logger.info("Connected to MongoDB"))
-  .catch((err) => logger.error("Error connecting to MongoDB:", err));
+mongoose
+  .connect("mongodb://127.0.0.1:27017/wtwr_db")
+  .then(() => {
+    console.log("Connected to DB");
+  })
+  .catch(console.error);
 
-const corsOptions = {
-  origin: "http://localhost:3000",
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cors());
 
-app.use("/auth", authRouter);
-app.use("/users", usersRouter);
-app.use("/items", clothingItemsRouter);
-
-app.use(errors());
-app.use(handleErrors);
+app.use("/", mainRouter);
 
 app.listen(PORT, () => {
-  logger.info(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

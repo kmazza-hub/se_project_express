@@ -1,13 +1,18 @@
-const express = require("express");
-const usersRouter = require("./users");
-const clothingItemsRouter = require("./clothingItem");
-const { createUser, login } = require("../controllers/users");
+const router = require("express").Router();
 
-const router = express.Router();
+const userRouter = require("./users");
+const clothingItemRouter = require("./clothingItems");
+const { NOT_FOUND } = require("../utils/constants");
+const { login, createUser } = require("../controllers/users");
 
-router.post("/signup", createUser);
+router.use("/users", userRouter);
+router.use("/items", clothingItemRouter);
+
 router.post("/signin", login);
-router.use("/users", usersRouter);
-router.use("/items", clothingItemsRouter);
+router.post("/signup", createUser);
+
+router.use((req, res) => {
+  res.status(NOT_FOUND).json({ message: "Requested resource not found" });
+});
 
 module.exports = router;
