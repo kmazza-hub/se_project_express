@@ -1,24 +1,15 @@
-const router = require("express").Router();
+// routes/clothingItems.js
+
+const express = require("express");
+const { getItems, createItem, deleteItem, likeItem, dislikeItem } = require("../controllers/clothingitems");
 const auth = require("../middlewares/auth");
 
-const {
-  createItem,
-  getItem,
-  deleteItem,
-  likeItem,
-  unlikeItem,
-} = require("../controllers/clothingItems");
+const router = express.Router();
 
-router.get("/", getItem);
-
-router.use(auth);
-
-router.post("/", createItem);
-
-router.delete("/:itemId", deleteItem);
-
-router.put("/:itemId/likes", likeItem);
-
-router.delete("/:itemId/likes", unlikeItem);
+router.get("/items", getItems);
+router.post("/items", auth, createItem);
+router.delete("/items/:itemId", auth, deleteItem);
+router.put("/items/:itemId/likes", auth, likeItem);
+router.delete("/items/:itemId/likes", auth, dislikeItem);
 
 module.exports = router;

@@ -1,27 +1,24 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils/config");
-const UNAUTHORIZED = require("../utils/constants");
+const User = require("../models/user");
+const { UNAUTHORIZED } = require("../utils/errors");
 
-module.exports = (req, res, next) => {
-  if (
-    req.method === "POST" &&
-    (req.path === "/signin" || req.path === "/signup")
-  ) {
-    return next();
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(UNAUTHORIZED).send({ message: "Authorization required" });
-  }
-
-  const token = authHeader.replace("Bearer ", "");
-
+const auth = async (req, res, next) => {
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload;
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(UNAUTHORIZED).json({ message: "Please authenticate." });
+    }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(UNAUTHORIZED).json({ message: "User not found" });
+    }
+    req.user = user;
     return next();
-  } catch (err) {
-    return res.status(UNAUTHORIZED).send({ message: "Invalid token" });
+  } catch (error) {
+    return res.status(UNAUTHORIZED).json({ message: "Authentication failed." });
   }
 };
+
+module.exports = auth;

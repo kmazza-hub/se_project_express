@@ -1,26 +1,28 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const clothingItemSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
   },
-  description: {
+  weather: {
     type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
     required: true,
   },
   imageUrl: {
     type: String,
     required: true,
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Assuming you're storing user references here
+    ref: 'User',
+    default: [],
   }],
 });
 
-module.exports = mongoose.model("ClothingItem", clothingItemSchema);
+module.exports = mongoose.model('ClothingItem', clothingItemSchema);
