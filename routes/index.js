@@ -1,16 +1,15 @@
-const router = require("express").Router();
-
-const userRouter = require("./users");
-const clothingItemRouter = require("./clothingItems");
+const express = require("express");
+const userRouter = require("./users");  // Correct import
+const clothingItemRouter = require("./clothingItems");  // Correct import
 const { NOT_FOUND } = require("../utils/constants");
-const { login, createUser } = require("../controllers/users");
 
-router.use("/users", userRouter);
-router.use("/items", clothingItemRouter);
+const router = express.Router();
 
-router.post("/signin", login);
-router.post("/signup", createUser);
+// Use routes for users and clothing items
+router.use("/users", userRouter);  // /api/users/signup, /api/users/signin, /api/users/me
+router.use("/items", clothingItemRouter);  // /api/items
 
+// Fallback for any unknown routes
 router.use((req, res) => {
   res.status(NOT_FOUND).json({ message: "Requested resource not found" });
 });

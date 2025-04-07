@@ -1,19 +1,24 @@
 const express = require("express");
-
-const router = express.Router();
 const {
-  /* loginUser,
-  createUser, */
+  loginUser,
+  createUser,
   getCurrentUser,
   updateUser,
-} = require("../controllers/users");
-const auth = require("../middlewares/auth"); // I have "const auth = require("../middlewares/auth");" here so I must find out why its not updating
+} = require("../controllers/users"); // Correct import
+const auth = require("../middlewares/auth");
 
-/* router.post("/login", loginUser);
-router.post("/register", createUser); */
-router.get("/users/me", auth, getCurrentUser);
-router.patch("/users/me", auth, updateUser);
+const router = express.Router();
+
+// POST /api/signin (Login)
+router.post("/signin", loginUser);
+
+// POST /api/signup (Signup)
+router.post("/signup", createUser);
+
+// GET /api/users/me (Get current user)
+router.get("/me", auth, getCurrentUser);
+
+// PATCH /api/users/me (Update current user profile)
+router.patch("/me", auth, updateUser);
 
 module.exports = router;
-
-/// / I really have no idea if this is correct. I apologize if I have changed too much
