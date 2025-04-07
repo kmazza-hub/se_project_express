@@ -1,13 +1,15 @@
-// app.js
-
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const clothingItemsRouter = require("./routes/clothingItems");
 
 const app = express();
 
-app.use(express.json()); // For parsing application/json
-app.use("/api", clothingItemsRouter); // Register the routes for clothing items
+app.use(cors());
+
+app.use(express.json());
+
+app.use("/api", clothingItemsRouter);
 
 mongoose.connect("mongodb://localhost:27017/wtwr", {
   useNewUrlParser: true,
