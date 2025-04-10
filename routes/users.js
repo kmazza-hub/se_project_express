@@ -4,21 +4,15 @@ const {
   createUser,
   getCurrentUser,
   updateUser,
-} = require("../controllers/users"); // Correct import
-const auth = require("../middlewares/auth");
+} = require("../controllers/users"); // Correct import for user controller
+const auth = require("../middlewares/auth"); // Middleware for authorization
 
-const router = express.Router();
+const router = express.Router(); // Create an Express router
 
-// POST /api/signin (Login)
-router.post("/signin", loginUser);
+// Define the routes
+router.post("/signin", loginUser); // User login
+router.post("/signup", createUser); // User signup
+router.get("/me", auth, getCurrentUser); // Get current logged-in user's profile
+router.patch("/me", auth, updateUser); // Update current logged-in user's profile
 
-// POST /api/signup (Signup)
-router.post("/signup", createUser);
-
-// GET /api/users/me (Get current user)
-router.get("/me", auth, getCurrentUser);
-
-// PATCH /api/users/me (Update current user profile)
-router.patch("/me", auth, updateUser);
-
-module.exports = router;
+module.exports = router; // Export the router instance

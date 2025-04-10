@@ -1,98 +1,114 @@
-// controllers/clothingitems.js
-
-const ClothingItem = require("../models/clothingitem");
-const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, FORBIDDEN } = require("../utils/errors");
+// controllers/clothingItems.js
+const ClothingItem = require("../models/clothingItem");
+const {
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+  UNAUTHORIZED,
+  CONFLICT,
+} = require("../utils/errors");
 
 const getItems = async (req, res) => {
   try {
     const items = await ClothingItem.find();
-    return res.status(200).json(items);
+    console.log("[GET /items] Retrieved items:", items);
+    res.status(200).json(items);
   } catch (error) {
-    return res.status(INTERNAL_SERVER_ERROR).json({ message: "An error has occurred on the server." });
+    console.error("[GET /items] Error retrieving items:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve items" });
   }
 };
 
-const createItem = async (req, res) => {
-  const { name, weather, imageUrl } = req.body;
+const addItem = async (req, res) => {
+  const { name, description, imageUrl, weather } = req.body;
+  console.log("[POST /items] Request body:", req.body);
+
   try {
-    const item = new ClothingItem({
+    const newItem = new ClothingItem({
       name,
-      weather,
+      description,
       imageUrl,
+      weather,
       owner: req.user._id,
     });
-    await item.save();
-    return res.status(201).json(item);
+    await newItem.save();
+    console.log("[POST /items] Item added:", newItem);
+    res.status(201).json(newItem);
   } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(BAD_REQUEST).json({ message: error.message });
-    }
-    return res.status(INTERNAL_SERVER_ERROR).json({ message: "An error has occurred on the server." });
+    console.error("[POST /items] Error adding item:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to add item" });
   }
 };
 
 const deleteItem = async (req, res) => {
+  console.log("[DELETE /items/:id] Attempting to delete item with ID:", req.params.id);
   try {
-    const item = await ClothingItem.findById(req.params.itemId).orFail(() => {
-      const error = new Error("Clothing item not found");
-      error.statusCode = NOT_FOUND;
-      throw error;
-    });
-
+    const item = await ClothingItem.findById(req.params.id);
+    if (!item) {
+      console.warn("[DELETE /items/:id] Item not found.");
+      return res.status(NOT_FOUND).json({ message: "Item not found" });
+    }
     if (item.owner.toString() !== req.user._id.toString()) {
-      return res.status(FORBIDDEN).json({ message: "You are not authorized to delete this item" });
+      console.warn("[DELETE /items/:id] Unauthorized delete attempt by user:", req.user._id);
+      return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
     }
     await item.remove();
-    return res.status(200).json({ message: "Item deleted" });
+    console.log("[DELETE /items/:id] Item deleted successfully:", item);
+    res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
-    if (error.name === "CastError") {
-      return res.status(BAD_REQUEST).json({ message: "Invalid ID format" });
-    }
-    if (error.statusCode === NOT_FOUND) {
-      return res.status(NOT_FOUND).json({ message: error.message });
-    }
-    return res.status(INTERNAL_SERVER_ERROR).json({ message: "An error has occurred on the server." });
+    console.error("[DELETE /items/:id] Error deleting item:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to delete item" });
   }
 };
 
 const likeItem = async (req, res) => {
-  const { itemId } = req.params;
+  console.log("[PUT /items/:id/likes] Like request for item ID:", req.params.id);
   try {
-    const item = await ClothingItem.findById(itemId);
+    const item = await ClothingItem.findById(req.params.id);
     if (!item) {
+      console.warn("[PUT /items/:id/likes] Item not found.");
       return res.status(NOT_FOUND).json({ message: "Item not found" });
     }
-    if (!item.likes.includes(req.user._id)) {
-      item.likes.push(req.user._id);
-      await item.save();
+
+    if (item.likes.includes(req.user._id)) {
+      console.log("[PUT /items/:id/likes] Item already liked by user:", req.user._id);
+      return res.status(CONFLICT).json({ message: "Item already liked" });
     }
-    return res.status(200).json(item);
+
+    item.likes.push(req.user._id);
+    await item.save();
+    console.log("[PUT /items/:id/likes] Item liked successfully:", item);
+    res.status(200).json(item);
   } catch (error) {
-    if (error.name === "CastError") {
-      return res.status(BAD_REQUEST).json({ message: "Invalid ID format" });
-    }
-    return res.status(INTERNAL_SERVER_ERROR).json({ message: "An error has occurred on the server." });
+    console.error("[PUT /items/:id/likes] Error liking item:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to like item" });
   }
 };
 
-const dislikeItem = async (req, res) => {
-  const { itemId } = req.params;
+const unlikeItem = async (req, res) => {
+  console.log("[DELETE /items/:id/likes] Unlike request for item ID:", req.params.id);
   try {
-    const item = await ClothingItem.findById(itemId);
+    const item = await ClothingItem.findById(req.params.id);
     if (!item) {
+      console.warn("[DELETE /items/:id/likes] Item not found.");
       return res.status(NOT_FOUND).json({ message: "Item not found" });
     }
+
     item.likes = item.likes.filter(
-      (userId) => userId.toString() !== req.user._id.toString()
+      (like) => like.toString() !== req.user._id.toString()
     );
     await item.save();
-    return res.status(200).json(item);
+    console.log("[DELETE /items/:id/likes] Item unliked successfully:", item);
+    res.status(200).json(item);
   } catch (error) {
-    if (error.name === "CastError") {
-      return res.status(BAD_REQUEST).json({ message: "Invalid ID format" });
-    }
-    return res.status(INTERNAL_SERVER_ERROR).json({ message: "An error has occurred on the server." });
+    console.error("[DELETE /items/:id/likes] Error unliking item:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to unlike item" });
   }
 };
 
-module.exports = { getItems, createItem, deleteItem, likeItem, dislikeItem };
+module.exports = {
+  getItems,
+  addItem,
+  deleteItem,
+  likeItem,
+  unlikeItem,
+};

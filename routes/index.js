@@ -1,13 +1,13 @@
 const express = require("express");
-const userRouter = require("./users");  // Correct import
-const clothingItemRouter = require("./clothingItems");  // Correct import
-const { NOT_FOUND } = require("../utils/constants");
+const userRouter = require("./users"); // User routes
+const clothingItemRouter = require("./clothingItems"); // Clothing item routes
+const { NOT_FOUND } = require("../utils/constants"); // Constant for status code
 
 const router = express.Router();
 
-// Use routes for users and clothing items
-router.use("/users", userRouter);  // /api/users/signup, /api/users/signin, /api/users/me
-router.use("/items", clothingItemRouter);  // /api/items
+// Use the imported routers with respective path prefixes
+router.use("/users", userRouter);  // Handle /api/users routes
+router.use("/items", clothingItemRouter);  // Handle /api/items routes
 
 // Fallback for any unknown routes
 router.use((req, res) => {
@@ -15,3 +15,4 @@ router.use((req, res) => {
 });
 
 module.exports = router;
+

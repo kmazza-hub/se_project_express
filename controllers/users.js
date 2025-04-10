@@ -1,85 +1,98 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 const User = require("../models/user");
-const { JWT_SECRET } = require("../utils/config");
-const {
-  BAD_REQUEST,
-  UNAUTHORIZED,
-  INTERNAL_SERVER_ERROR,
-  CONFLICT,
-} = require("../utils/errors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { INTERNAL_SERVER_ERROR, BAD_REQUEST, UNAUTHORIZED } = require("../utils/errors");
 
+// Controller for user signup
+const createUser = async (req, res) => {
+  const { username, password, email } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(BAD_REQUEST).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      email,
+    });
+
+    await newUser.save();
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Error during signup:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to create user" });
+  }
+};
+
+// Controller for user login
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+
   try {
-    const user = await User.findOne({ email }).select("+password");
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(UNAUTHORIZED).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(UNAUTHORIZED).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
     res.status(200).json({ token });
   } catch (error) {
-    res
-      .status(INTERNAL_SERVER_ERROR)
-      .json({ message: "Server error during login" });
+    console.error("Error during signin:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to signin" });
   }
 };
 
-const createUser = async (req, res) => {
-  const { name, avatar, email, password } = req.body;
-  try {
-    const user = await User.create({ name, avatar, email, password });
-    const { password: _, ...userData } = user.toObject();
-    res.status(201).json(userData);
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(CONFLICT).json({ message: "Email already in use" });
-    }
-    if (error.name === "ValidationError") {
-      return res.status(BAD_REQUEST).json({ message: error.message });
-    }
-    res
-      .status(INTERNAL_SERVER_ERROR)
-      .json({ message: "Server error during signup" });
-  }
-};
-
+// Controller for fetching current user profile
 const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const { password, ...userData } = user.toObject();
-    res.status(200).json(userData);
-  } catch {
-    res
-      .status(INTERNAL_SERVER_ERROR)
-      .json({ message: "Failed to retrieve user" });
+    if (!user) {
+      return res.status(UNAUTHORIZED).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch user profile" });
   }
 };
 
+// Controller for updating current user profile
 const updateUser = async (req, res) => {
-  const { name, avatar } = req.body;
+  const { username, email } = req.body;
+
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { name, avatar },
-      { new: true, runValidators: true }
-    );
-    const { password, ...userData } = user.toObject();
-    res.status(200).json(userData);
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(BAD_REQUEST).json({ message: error.message });
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(UNAUTHORIZED).json({ message: "User not found" });
     }
-    res
-      .status(INTERNAL_SERVER_ERROR)
-      .json({ message: "Failed to update profile" });
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+
+    await user.save();
+
+    res.status(200).json({ message: "User profile updated successfully" });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to update user profile" });
   }
 };
 
 module.exports = {
-  loginUser,
   createUser,
+  loginUser,
   getCurrentUser,
   updateUser,
 };
