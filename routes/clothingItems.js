@@ -1,4 +1,3 @@
-// routes/clothingItems.js
 const express = require("express");
 const {
   getItems,
@@ -19,3 +18,4 @@ router.put("/:id/likes", auth, likeItem);
 router.delete("/:id/likes", auth, unlikeItem);
 
 module.exports = router; // Export the router instance
+
