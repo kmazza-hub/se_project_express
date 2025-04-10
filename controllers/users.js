@@ -5,22 +5,27 @@ const { INTERNAL_SERVER_ERROR, BAD_REQUEST, UNAUTHORIZED } = require("../utils/e
 
 // Controller for user signup
 const createUser = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { name, password, email, avatar } = req.body; // Destructure name, password, email, and avatar
 
   try {
+    // Check if the email already exists in the database
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(BAD_REQUEST).json({ message: "User already exists" });
     }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create a new user object with name, password, email, and avatar
     const newUser = new User({
-      username,
+      name,       // Use 'name' instead of 'username'
       password: hashedPassword,
       email,
+      avatar,     // Add avatar
     });
 
+    // Save the user to the database
     await newUser.save();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
@@ -70,7 +75,7 @@ const getCurrentUser = async (req, res) => {
 
 // Controller for updating current user profile
 const updateUser = async (req, res) => {
-  const { username, email } = req.body;
+  const { name, email, avatar } = req.body;
 
   try {
     const user = await User.findById(req.user._id);
@@ -78,8 +83,9 @@ const updateUser = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "User not found" });
     }
 
-    user.username = username || user.username;
-    user.email = email || user.email;
+    user.name = name || user.name;       // Update name if provided
+    user.email = email || user.email;     // Update email if provided
+    user.avatar = avatar || user.avatar; // Update avatar if provided
 
     await user.save();
 
