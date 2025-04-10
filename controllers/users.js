@@ -5,10 +5,10 @@ const { INTERNAL_SERVER_ERROR, BAD_REQUEST, UNAUTHORIZED } = require("../utils/e
 
 // Controller for user signup
 const createUser = async (req, res) => {
-  const { name, password, email, avatar } = req.body; // Destructure name, password, email, and avatar
+  const { name, password, email, avatar } = req.body;
 
   try {
-    // Check if the email already exists in the database
+    // Check if the email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(BAD_REQUEST).json({ message: "User already exists" });
@@ -17,15 +17,15 @@ const createUser = async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user object with name, password, email, and avatar
+    // Create new user object
     const newUser = new User({
-      name,       // Use 'name' instead of 'username'
+      name,       // 'name' instead of 'username'
       password: hashedPassword,
       email,
-      avatar,     // Add avatar
+      avatar,     // Include avatar
     });
 
-    // Save the user to the database
+    // Save the user
     await newUser.save();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
@@ -49,8 +49,8 @@ const loginUser = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "Invalid credentials" });
     }
 
+    // Create and send token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
     res.status(200).json({ token });
   } catch (error) {
     console.error("Error during signin:", error);
@@ -65,7 +65,6 @@ const getCurrentUser = async (req, res) => {
     if (!user) {
       return res.status(UNAUTHORIZED).json({ message: "User not found" });
     }
-
     res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user profile:", error);
@@ -88,7 +87,6 @@ const updateUser = async (req, res) => {
     user.avatar = avatar || user.avatar; // Update avatar if provided
 
     await user.save();
-
     res.status(200).json({ message: "User profile updated successfully" });
   } catch (error) {
     console.error("Error updating user profile:", error);

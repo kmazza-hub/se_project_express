@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    // Verify token with JWT_SECRET
+    // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;  // Attach user info to request object
     next();
@@ -26,4 +26,3 @@ const auth = (req, res, next) => {
 };
 
 module.exports = auth;
-

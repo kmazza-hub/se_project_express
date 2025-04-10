@@ -9,8 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Mount the mainRouter at the "/api" path to add the "/api" prefix
-app.use("/api", mainRouter); // All routes in mainRouter will now be prefixed with /api
+app.use("/", mainRouter);
 
 mongoose
   .connect("mongodb://localhost:27017/wtwr", {
