@@ -1,8 +1,10 @@
+require("dotenv").config();
+console.log("JWT Secret Loaded:", process.env.JWT_SECRET);
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-const mainRouter = require("./routes"); // Import the main router that includes all other routes
+const mainRouter = require("./routes");
 
 const app = express();
 
