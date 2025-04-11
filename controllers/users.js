@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
 const { INTERNAL_SERVER_ERROR, BAD_REQUEST, UNAUTHORIZED } = require("../utils/errors");
 
 // Controller for user signup
@@ -19,10 +20,10 @@ const createUser = async (req, res) => {
 
     // Create new user object
     const newUser = new User({
-      name,       // 'name' instead of 'username'
+      name,
       password: hashedPassword,
       email,
-      avatar,     // Include avatar
+      avatar,
     });
 
     // Save the user
@@ -50,7 +51,7 @@ const loginUser = async (req, res) => {
     }
 
     // Create and send token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "1h" });
     res.status(200).json({ token });
   } catch (error) {
     console.error("Error during signin:", error);
@@ -82,9 +83,9 @@ const updateUser = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "User not found" });
     }
 
-    user.name = name || user.name;       // Update name if provided
-    user.email = email || user.email;     // Update email if provided
-    user.avatar = avatar || user.avatar; // Update avatar if provided
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.avatar = avatar || user.avatar;
 
     await user.save();
     res.status(200).json({ message: "User profile updated successfully" });

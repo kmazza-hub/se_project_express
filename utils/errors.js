@@ -1,6 +1,3 @@
-// utils/errors.js
-
-// Define common HTTP status codes
 const INTERNAL_SERVER_ERROR = 500;
 const BAD_REQUEST = 400;
 const UNAUTHORIZED = 401;
