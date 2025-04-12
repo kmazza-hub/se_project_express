@@ -2,17 +2,28 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils/config");
-const {
-  INTERNAL_SERVER_ERROR,
-  BAD_REQUEST,
-  UNAUTHORIZED,
-} = require("../utils/errors");
+const { INTERNAL_SERVER_ERROR, BAD_REQUEST, UNAUTHORIZED } = require("../utils/errors");
+const validator = require("validator");
+
+// Utility function to handle errors
+const handleError = (res, error, message, statusCode = INTERNAL_SERVER_ERROR) => {
+  console.error(error);
+  return res.status(statusCode).json({ message, details: error.message });
+};
 
 // Controller for user signup
 const createUser = async (req, res) => {
   console.log("📥 Signup attempt:", req.body);
 
   const { name, password, email, avatar } = req.body;
+
+  // Input validation
+  if (!validator.isEmail(email)) {
+    return res.status(BAD_REQUEST).json({ message: "Invalid email format" });
+  }
+  if (!validator.isLength(password, { min: 6 })) {
+    return res.status(BAD_REQUEST).json({ message: "Password must be at least 6 characters" });
+  }
 
   try {
     const existingUser = await User.findOne({ email });
@@ -33,8 +44,7 @@ const createUser = async (req, res) => {
     console.log("✅ User created:", email);
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
-    console.error("❌ Error during signup:", error);
-    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to create user" });
+    handleError(res, error, "Failed to create user", BAD_REQUEST);
   }
 };
 
@@ -52,12 +62,7 @@ const loginUser = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "Invalid credentials" });
     }
 
-    console.log("🔍 Found user:", {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-    });
+    console.log("🔍 Found user:", { _id: user._id, name: user.name, email: user.email, avatar: user.avatar });
 
     const isMatch = await bcrypt.compare(password, user.password);
 
@@ -75,8 +80,7 @@ const loginUser = async (req, res) => {
     console.log("✅ Login successful. Sending token.");
     res.status(200).json({ token });
   } catch (error) {
-    console.error("❌ Error during signin:", error);
-    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to signin" });
+    handleError(res, error, "Failed to signin", UNAUTHORIZED);
   }
 };
 
@@ -91,8 +95,7 @@ const getCurrentUser = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error("❌ Error fetching user profile:", error);
-    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch user profile" });
+    handleError(res, error, "Failed to fetch user profile");
   }
 };
 
@@ -107,6 +110,11 @@ const updateUser = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "User not found" });
     }
 
+    // Input validation
+    if (email && !validator.isEmail(email)) {
+      return res.status(BAD_REQUEST).json({ message: "Invalid email format" });
+    }
+
     user.name = name || user.name;
     user.email = email || user.email;
     user.avatar = avatar || user.avatar;
@@ -114,8 +122,7 @@ const updateUser = async (req, res) => {
     await user.save();
     res.status(200).json({ message: "User profile updated successfully" });
   } catch (error) {
-    console.error("❌ Error updating user profile:", error);
-    res.status(INTERNAL_SERVER_ERROR).json({ message: "Failed to update user profile" });
+    handleError(res, error, "Failed to update user profile");
   }
 };
 
