@@ -42,7 +42,16 @@ const createUser = async (req, res) => {
 
     await newUser.save();
     console.log("✅ User created:", email);
-    res.status(201).json({ message: "User created successfully" });
+
+    // 🔑 Generate JWT token after user is created
+    const token = jwt.sign(
+      { _id: newUser._id, email: newUser.email, name: newUser.name },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Send token in response
+    res.status(201).json({ token });
   } catch (error) {
     handleError(res, error, "Failed to create user", BAD_REQUEST);
   }
