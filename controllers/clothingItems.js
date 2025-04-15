@@ -42,7 +42,7 @@ const addItem = async (req, res) => {
 const deleteItem = async (req, res) => {
   console.log("[DELETE /items/:id] Attempting to delete item with ID:", req.params.id);
   try {
-    // Find and delete the item using `findByIdAndDelete`
+    // First, find the item
     const item = await ClothingItem.findById(req.params.id);
     if (!item) {
       console.warn("[DELETE /items/:id] Item not found.");
@@ -55,8 +55,8 @@ const deleteItem = async (req, res) => {
       return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
     }
 
-    // Delete the item
-    await item.remove();
+    // Now delete the item
+    await ClothingItem.findByIdAndDelete(req.params.id);
     console.log("[DELETE /items/:id] Item deleted successfully:", item);
     res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
