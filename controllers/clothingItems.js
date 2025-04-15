@@ -42,15 +42,20 @@ const addItem = async (req, res) => {
 const deleteItem = async (req, res) => {
   console.log("[DELETE /items/:id] Attempting to delete item with ID:", req.params.id);
   try {
+    // Find and delete the item using `findByIdAndDelete`
     const item = await ClothingItem.findById(req.params.id);
     if (!item) {
       console.warn("[DELETE /items/:id] Item not found.");
       return res.status(NOT_FOUND).json({ message: "Item not found" });
     }
+
+    // Check ownership before deletion
     if (item.owner.toString() !== req.user._id.toString()) {
       console.warn("[DELETE /items/:id] Unauthorized delete attempt by user:", req.user._id);
       return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
     }
+
+    // Delete the item
     await item.remove();
     console.log("[DELETE /items/:id] Item deleted successfully:", item);
     res.status(200).json({ message: "Item deleted successfully" });
