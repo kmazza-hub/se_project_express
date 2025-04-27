@@ -1,4 +1,6 @@
 const axios = require("axios");
+const BadRequestError = require("../errors/BadRequestError");
+const InternalServerError = require("../errors/InternalServerError");
 
 const OPEN_WEATHER_API_KEY = process.env.OPEN_WEATHER_API_KEY;
 
@@ -7,9 +9,13 @@ const DEFAULT_COORDS = {
   lon: -74.0060,
 };
 
-const getWeather = async (req, res) => {
+const getWeather = async (req, res, next) => {
   try {
     const { lat = DEFAULT_COORDS.lat, lon = DEFAULT_COORDS.lon } = req.query;
+
+    if (!OPEN_WEATHER_API_KEY) {
+      throw new BadRequestError("Missing OpenWeather API key in environment variables");
+    }
 
     const response = await axios.get(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API_KEY}&units=imperial`
@@ -20,7 +26,6 @@ const getWeather = async (req, res) => {
     const mainCondition = weatherData.weather[0].main.toLowerCase();
 
     let condition;
-
     if (mainCondition.includes("cloud")) {
       condition = "clouds";
     } else if (mainCondition.includes("snow")) {
@@ -31,8 +36,7 @@ const getWeather = async (req, res) => {
       condition = "clear";
     }
 
-    // Check if it's day or night based on sunrise and sunset
-    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    const currentTime = Math.floor(Date.now() / 1000);
     const isDay = currentTime >= weatherData.sys.sunrise && currentTime < weatherData.sys.sunset;
 
     const result = {
@@ -42,13 +46,12 @@ const getWeather = async (req, res) => {
       },
       city: weatherData.name,
       condition,
-      isDay, // <-- ADDED HERE
+      isDay,
     };
 
     res.status(200).json(result);
-  } catch (error) {
-    console.error("[GET /weather] Error:", error.message);
-    res.status(500).json({ message: "Failed to fetch weather" });
+  } catch (err) {
+    next(err);
   }
 };
 

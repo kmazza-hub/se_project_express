@@ -1,22 +1,23 @@
 const express = require("express");
+const { validateSignin, validateSignup } = require("../middlewares/validation");
 const { loginUser, createUser } = require("../controllers/users");
 const { NOT_FOUND } = require("../utils/constants");
 const clothingItemRouter = require("./clothingItems");
 const userRouter = require("./users");
-const { getWeather } = require("../controllers/weather"); // <-- ADD THIS
+const { getWeather } = require("../controllers/weather");
 
 const router = express.Router();
 
 // Auth routes
-router.post("/signin", loginUser);
-router.post("/signup", createUser);
+router.post("/signin", validateSignin, loginUser);
+router.post("/signup", validateSignup, createUser);
 
 // Main routes
 router.use("/users", userRouter);
 router.use("/items", clothingItemRouter);
 
 // Weather route
-router.get("/weather", getWeather); // <-- ADD THIS
+router.get("/weather", getWeather);
 
 // 404 fallback
 router.use((req, res) => {
