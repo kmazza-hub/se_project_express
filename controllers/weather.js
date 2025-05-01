@@ -1,12 +1,11 @@
-const axios = require("axios");
-const BadRequestError = require("../errors/BadRequestError");
-const InternalServerError = require("../errors/InternalServerError");
+const axios = require('axios');
+const BadRequestError = require('../errors/BadRequestError.js');
 
-const OPEN_WEATHER_API_KEY = process.env.OPEN_WEATHER_API_KEY;
+const { OPEN_WEATHER_API_KEY } = process.env;
 
 const DEFAULT_COORDS = {
   lat: 40.7128,
-  lon: -74.0060,
+  lon: -74.006,
 };
 
 const getWeather = async (req, res, next) => {
@@ -14,26 +13,27 @@ const getWeather = async (req, res, next) => {
     const { lat = DEFAULT_COORDS.lat, lon = DEFAULT_COORDS.lon } = req.query;
 
     if (!OPEN_WEATHER_API_KEY) {
-      throw new BadRequestError("Missing OpenWeather API key in environment variables");
+      return next(
+        new BadRequestError('Missing OpenWeather API key in environment variables'),
+      );
     }
 
     const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API_KEY}&units=imperial`
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API_KEY}&units=imperial`,
     );
 
     const weatherData = response.data;
-
     const mainCondition = weatherData.weather[0].main.toLowerCase();
 
     let condition;
-    if (mainCondition.includes("cloud")) {
-      condition = "clouds";
-    } else if (mainCondition.includes("snow")) {
-      condition = "snow";
+    if (mainCondition.includes('cloud')) {
+      condition = 'clouds';
+    } else if (mainCondition.includes('snow')) {
+      condition = 'snow';
     } else if (weatherData.main.temp <= 40) {
-      condition = "cold";
+      condition = 'cold';
     } else {
-      condition = "clear";
+      condition = 'clear';
     }
 
     const currentTime = Math.floor(Date.now() / 1000);
@@ -49,9 +49,9 @@ const getWeather = async (req, res, next) => {
       isDay,
     };
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 

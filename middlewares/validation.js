@@ -1,5 +1,3 @@
-// src/middlewares/validation.js
-
 const { celebrate, Joi } = require("celebrate");
 
 // Validation for signing up
@@ -8,7 +6,7 @@ const validateSignup = celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required().min(6),
     name: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().uri().required(), // avatar must be a valid URL
+    avatar: Joi.string().uri().required(),
   }),
 });
 
@@ -20,10 +18,28 @@ const validateSignin = celebrate({
   }),
 });
 
-// Validation for itemId (in params)
+// Validation for clothing item creation
+const validateItem = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    imageUrl: Joi.string().required().uri(),
+    weather: Joi.string().required().valid("hot", "warm", "cold"),
+    description: Joi.string().optional(),
+  }),
+});
+
+// Validation for item ID in params
 const validateItemId = celebrate({
   params: Joi.object().keys({
     itemId: Joi.string().length(24).hex().required(),
+  }),
+});
+
+// Validation for updating user profile
+const validateUpdateUser = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    avatar: Joi.string().required().uri(),
   }),
 });
 
@@ -31,4 +47,6 @@ module.exports = {
   validateSignup,
   validateSignin,
   validateItemId,
+  validateItem,
+  validateUpdateUser,
 };

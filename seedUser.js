@@ -1,7 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const User = require("./se_project_express/models/user");
+const User = require("./models/user.js"); // ✅ Fixed path + extension
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/se_project_db";
 
@@ -24,6 +24,7 @@ async function seed() {
     const user = await User.create({
       name: "Test User",
       email,
+      avatar: "https://i.pravatar.cc/150?img=0", // ✅ required field
       password: passwordHash,
     });
 

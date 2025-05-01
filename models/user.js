@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -18,7 +17,6 @@ const userSchema = new mongoose.Schema({
       },
       message: "You must enter a valid URL for the avatar",
     },
-    // Optional: Default avatar in case user doesn't provide one
     default: 'https://i.pravatar.cc/150?img=0',
   },
   email: {
@@ -35,11 +33,10 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false, // Ensure password is not returned in queries by default
+    select: false,
   },
 });
 
-// Model creation
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

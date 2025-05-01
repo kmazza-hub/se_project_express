@@ -1,14 +1,15 @@
-const express = require("express");
+const express = require('express');
 const {
   getCurrentUser,
   updateUser,
-} = require("../controllers/users"); // Correct import for user controller
-const auth = require("../middlewares/auth"); // Middleware for authorization
+} = require('../controllers/users.js');
+const auth = require('../middlewares/auth.js');
+const { validateUpdateUser } = require('../middlewares/validation.js'); // ✅ Validation added
 
-const router = express.Router(); // Create an Express router
+const router = express.Router();
 
-// Define the routes
-router.get("/me", auth, getCurrentUser); // Get current logged-in user's profile
-router.patch("/me", auth, updateUser); // Update current logged-in user's profile
+// Routes
+router.get('/me', auth, getCurrentUser);
+router.patch('/me', auth, validateUpdateUser, updateUser);
 
-module.exports = router; // Export the router instance
+module.exports = router;

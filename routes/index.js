@@ -1,27 +1,27 @@
-const express = require("express");
-const { validateSignin, validateSignup } = require("../middlewares/validation");
-const { loginUser, createUser } = require("../controllers/users");
-const { NOT_FOUND } = require("../utils/constants");
-const clothingItemRouter = require("./clothingItems");
-const userRouter = require("./users");
-const { getWeather } = require("../controllers/weather");
+const express = require('express');
+const { validateSignin, validateSignup } = require('../middlewares/validation.js');
+const { loginUser, createUser } = require('../controllers/users.js');
+const NotFoundError = require('../errors/NotFoundError.js');
+const clothingItemRouter = require('./clothingItems.js');
+const userRouter = require('./users.js');
+const { getWeather } = require('../controllers/weather.js');
 
 const router = express.Router();
 
 // Auth routes
-router.post("/signin", validateSignin, loginUser);
-router.post("/signup", validateSignup, createUser);
+router.post('/signin', validateSignin, loginUser);
+router.post('/signup', validateSignup, createUser);
 
 // Main routes
-router.use("/users", userRouter);
-router.use("/items", clothingItemRouter);
+router.use('/users', userRouter);
+router.use('/items', clothingItemRouter);
 
 // Weather route
-router.get("/weather", getWeather);
+router.get('/weather', getWeather);
 
 // 404 fallback
-router.use((req, res) => {
-  res.status(NOT_FOUND).json({ message: "Requested resource not found" });
+router.use((req, res, next) => {
+  next(new NotFoundError('Requested resource not found'));
 });
 
 module.exports = router;
