@@ -18,7 +18,7 @@ const router = express.Router();
 router.get('/', getItems);
 
 // Authenticated and validated routes
-router.post('/', auth, validateCreateItem, addItem);
+router.post('/', auth, validateItem, addItem);
 router.delete('/:itemId', auth, validateItemId, deleteItem);
 router.put('/:itemId/likes', auth, validateItemId, likeItem);
 router.delete('/:itemId/likes', auth, validateItemId, unlikeItem);

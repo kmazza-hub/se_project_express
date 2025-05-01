@@ -24,7 +24,6 @@ const validateItem = celebrate({
     name: Joi.string().required().min(2).max(30),
     imageUrl: Joi.string().required().uri(),
     weather: Joi.string().required().valid("hot", "warm", "cold"),
-    description: Joi.string().optional(),
   }),
 });
 
