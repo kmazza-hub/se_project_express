@@ -8,7 +8,7 @@ const {
 } = require('../controllers/clothingItems.js');
 const auth = require('../middlewares/auth.js');
 const {
-  validateCreateItem,
+  validateItem, // ✅ Corrected function name
   validateItemId,
 } = require('../middlewares/validation.js');
 
